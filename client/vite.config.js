@@ -7,4 +7,5 @@ export default defineConfig({
   server: {
     port: 5174, // Replace 3000 with your desired port number
   },
+  envDir: './', // Ensures .env is loaded from the root
 })

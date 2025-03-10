@@ -3,6 +3,7 @@ import { assets } from '../assets/assets'
 import { AppContext } from '../context/AppContext'
 import axios from 'axios'
 import { useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 const RecruiterLogin = () => {
 
     const navigate = useNavigate()
@@ -19,25 +20,45 @@ const RecruiterLogin = () => {
     const onSubmitHandler = async(e) => {
         e.preventDefault()
         if(state == "Sign Up" && !isTextDataSubmitted){
-            setIsTextDataSubmitted(true)
+            return setIsTextDataSubmitted(true)
         }
 
         try{
             if(state === "Login"){
                 const {data} = await axios.post(backendUrl+'/api/company/login',{email, password})
                 if(data.success){
-                    console.log(data);
                     setCompanyData(data.company)
                     setCompanyToken(data.token)
-                    localStorage.setItem('companyToken')
-                    setShowRecruiterLogin(false)
+                    localStorage.setItem('companyToken', data.token);
                     navigate('/dashboard')
+                    setShowRecruiterLogin(false)
+                }
+                else{
+                    toast.error(data.message)
                 }
             }
-            
+            else{
+                const formData = new FormData()
+                formData.append('name',name)
+                formData.append('password',password)
+                formData.append('email',email)
+                formData.append('image',image)
+                
+                const {data} = await axios.post(backendUrl+'/api/company/register', formData)
+                if(data.success){
+                    setCompanyData(data.company)
+                    setCompanyToken(data.token)
+                    localStorage.setItem('companyToken', data.token);
+                    navigate('/dashboard')
+                    setShowRecruiterLogin(false)
+                }
+                else{
+                    toast.error("Invalid Credentials")
+                }
+            }
         }
         catch(error){
-
+            console.log({success:false, message:error.message})
         }
 
     }

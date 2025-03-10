@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt'
 import { v2 as cloudinary } from 'cloudinary'
 import generateToken from '../utils/generateToken.js'
 import Job from '../models/Job.js'
+import JobApplication from '../models/JobApplication.js'
 
 //Register the Company
 export const registerCompany = async (req, res) => {
@@ -24,14 +25,12 @@ export const registerCompany = async (req, res) => {
         const salt = await bcrypt.genSalt(10)
         const hashPassword = await bcrypt.hash(password, salt)
         const imageUpload = await cloudinary.uploader.upload(imageFile.path)
-        console.log("print here")
         const company = await Company.create({
             name,
             email,
             password: hashPassword,
             image: imageUpload.secure_url
         })
-        console.log("here")
         res.json({
             success: true,
             company: {
@@ -54,7 +53,7 @@ export const loginCompany = async (req, res) => {
     const {email, password} = req.body
     try {
         const company = await Company.findOne({email})
-        if(bcrypt.compare(password, company.password)){
+        if(await bcrypt.compare(password, company.password)){
             res.json({
                 success: true,
                 company: {
@@ -124,9 +123,14 @@ export const getCompanyPostedJobs = async (req, res) => {
 
         const jobs = await Job.find({ companyId });
 
-        // (ToDo) Adding No. of applicants info in data
+        // Adding No. of applicants info in data
 
-        res.json({ success: true, jobsData: jobs });
+        const jobsData = await Promise.all(jobs.map(async(job)=>{
+            const applicants = await JobApplication.find({jobId: job._id});
+            return {...job.toObject(),applicants:applicants.length}
+        }))
+
+        res.json({ success: true, jobsData});
     } catch (error) {
         res.json({ success: false, message: error.message });
     }
