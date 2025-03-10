@@ -11,7 +11,7 @@ import axios from 'axios'
 const Applications = () => {
   const [isEdit, setIsEdit] = useState(false)
   const [resume, setResume] = useState(null)
-  const {backendUrl, userData, userApplications, fetchUserData, fetchUserApplicationStatus} = useContext(AppContext)
+  const {backendUrl, userData, userApplications, fetchUserData, fetchUserApplications} = useContext(AppContext)
   
   const {user} = useUser()
   const {getToken} = useAuth()
@@ -43,9 +43,9 @@ const Applications = () => {
 
   useEffect(()=>{
     if(user){
-      fetchUserApplicationStatus()
+      fetchUserApplications()
     }
-  },[])
+  },[user])
   
   useEffect(() => {
     console.log("userData:", userData);
