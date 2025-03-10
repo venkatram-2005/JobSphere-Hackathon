@@ -28,7 +28,8 @@ await connectCloudinary()
 app.get('/', (req, res)=>res.send("API is working fine..."))
 app.get("/debug-sentry", function mainHandler(req, res) {
     throw new Error("My first Sentry error!");
-  }); 
+}); 
+  
 app.post('/webhooks', clerkWebhooks)
 app.use('/api/company', companyRoutes)
 app.use('/api/jobs', jobRoutes)

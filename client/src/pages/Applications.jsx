@@ -1,12 +1,56 @@
-import React, { useState } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import Navbar from '../components/Navbar'
-import { assets, jobsApplied } from '../assets/assets'
+import { assets } from '../assets/assets'
 import moment from 'moment'
 import Footer from '../components/Footer'
+import { AppContext } from '../context/AppContext'
+import { useUser, useAuth } from '@clerk/clerk-react'
+import { toast } from 'react-toastify'
+import axios from 'axios'
 
 const Applications = () => {
   const [isEdit, setIsEdit] = useState(false)
   const [resume, setResume] = useState(null)
+  const {backendUrl, userData, userApplications, fetchUserData, fetchUserApplicationStatus} = useContext(AppContext)
+  
+  const {user} = useUser()
+  const {getToken} = useAuth()
+
+  const updateResume = async()=>{
+    try {
+      const formData = new FormData()
+      formData.append('resume',resume)
+
+      const token = await getToken()
+      const {data} = await axios.post(backendUrl+'/api/users/update-resume'
+        ,formData, 
+        {headers : {Authorization : `Bearer ${token}`}}
+      )
+
+      if(data.success){
+        toast.success(data.message)
+        await fetchUserData()
+      }
+      else{
+        toast.error(data.message)
+      }
+    } catch (error) {
+      toast.error(error.message)
+    }
+    setIsEdit(false)
+    setResume(null)
+  }
+
+  useEffect(()=>{
+    if(user){
+      fetchUserApplicationStatus()
+    }
+  },[])
+  
+  useEffect(() => {
+    console.log("userData:", userData);
+  }, [userData]);
+  
   return (
     <>
       <Navbar />
@@ -14,16 +58,17 @@ const Applications = () => {
         <h2 className='test-xl font-semibold'>Your Resume</h2>
         <div className='flex gap-2 mb-6 mt-3'>
           {
-            isEdit ? <>
+            isEdit || userData && userData.resume === ""
+            ? <>
               <label htmlFor="resumeUpload" className='flex items-center'>
-                <p className='bg-blue-100 text-blue-600 px-4 py-2 rounded-lg mr-2'>Select Resume</p>
+                <p className='bg-blue-100 text-blue-600 px-4 py-2 rounded-lg mr-2'>{resume ? resume.name : "Select Resume"}</p>
                 <input onChange={e => setResume(e.target.files[0])} accept='application/pdf' type="file" id='resumeUpload' hidden />
                 <img src={assets.profile_upload_icon} alt="" />
               </label>
-              <button onClick={e => setIsEdit(false)} className='bg-green-200 text-green-600 px-4 py-2 rounded-lg mr-2'>Save</button>
+              <button onClick={updateResume} className='bg-green-200 text-green-600 px-4 py-2 rounded-lg mr-2'>Save</button>
             </>
               : <div className='flex gap-2'>
-                <a className='bg-blue-100 text-blue-600 px-4 py-2 rounded-lg' href="">Resume</a>
+                <a target='_blank' href={userData?.resume || "#"}  className='bg-blue-100 text-blue-600 px-4 py-2 rounded-lg'>Resume</a>
                 <button onClick={() => setIsEdit(true)} className='text-gray-500 border border-gray-300 rounded-lg px-4 py-2'>Edit</button>
               </div>
           }
@@ -43,15 +88,15 @@ const Applications = () => {
             </tr>
           </thead>
           <tbody>
-            {jobsApplied.map((job, index) => true ?  (
+            {userApplications.map((job, index) => true ?  (
               <tr key={index} className="border-b">
                 <td className="py-3 px-4 flex items-center gap-2 border-b">
-                  <img src={job.logo} alt={job.company} className="w-8 h-8 rounded-full" />
-                  <span>{job.company}</span>
+                  <img src={job.companyId.image} alt={job.companyId.name} className="w-8 h-8 rounded-full" />
+                  
                 </td>
-                <td className="py-2 px-4 border-b">{job.title}</td>
-                <td className="py-2 px-4 border-b max-sm:hidden">{job.location}</td>
-                <td className="py-2 px-4 border-b max-sm:hidden">{moment(job.date, "DD MMM, YYYY").format("LL")}</td>
+                <td className="py-2 px-4 border-b">{job.jobId.title}</td>
+                <td className="py-2 px-4 border-b max-sm:hidden">{job.jobId.location }</td>
+                <td className="py-2 px-4 border-b max-sm:hidden">{moment(job.date).format("LL")}</td>
                 <td className="py-2 px-4 border-b">
                   <span className={`${job.status === 'Accepted' ? 'bg-green-100' : job.status === 'Rejected' ? 'bg-red-100' : 'bg-blue-100'} px-4 py-1.5 rounded`}>
                     {job.status}
