@@ -3,17 +3,17 @@
 @tailwind components;
 @tailwind utilities;
 
-*{
+* {
     font-family: Outfit;
 }
 
-@layer base{
-    html{
+@layer base {
+    html {
         scroll-behavior: smooth;
     }
 }
 
-::-webkit-scrollbar{
+::-webkit-scrollbar {
     display: none;
 }
 

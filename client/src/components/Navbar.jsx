@@ -13,9 +13,9 @@ const Navbar = () => {
   return (
     <div className='shadow py-4'>
       <div className='container px-4 2xl:px-20 mx-auto flex justify-between items-center'>
-        <img src={jobsphere} onClick={()=>navigate('/')} alt="JobSphere Logo" className="w-50 h-10 cursor-pointer" />
+        <img src={jobsphere} onClick={()=>navigate('/')} alt="JobSphere Logo" className="w-35 h-9 cursor-pointer" />
         {
-          user  ? <div className='flex items-center gap-3'>
+          user  ? <div className='flex items-center gap-1'>
                     <Link to={'/applications'}>Applied Jobs</Link>
                     <p>|</p>
                     <p className='max-sm:hidden'>Hi, {user.firstName + " " + user.lastName}</p>
